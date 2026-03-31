@@ -1,6 +1,6 @@
 # esphome-homeassistant-lab
 <div style="text-align:center;">
-  <img src="images/portada.png" alt="Portada del proyecto" style="width:50%;">
+  <img src="images/portada.png" alt="Portada del proyecto" style="width:90%;">
 </div>
 
 
