@@ -1,3 +1,16 @@
+# Lista de piezas recomendadas
+
+A continuación se muestra una lista de módulos y componentes compatibles, con enlaces de ejemplo para su compra:
+
+- [Mini Micro USB tipo C USB 5V 1A 18650 TP4056 módulo de cargador de batería de litio con protección](https://es.aliexpress.com/item/1005009887303870.html)
+- [Pantalla OLED 0,96" I2C 128x64 SSD1306](https://es.aliexpress.com/item/1005006365881525.html)
+- [Placa de pruebas PCB sin soldadura, 400 puntos](https://es.aliexpress.com/item/1005010426826947.html)
+- [Placa de desarrollo ESP32-C3 Super Mini, 16 pines tipo C](https://es.aliexpress.com/item/1005009014269977.html)
+- [Sensor de Gas TENSTAR SCD40/SCD41 CO₂, temperatura y humedad I2C](https://es.aliexpress.com/item/1005009897956849.html)
+- [AHT20 + BMP280 Módulo de temperatura, humedad y presión del aire](https://es.aliexpress.com/item/1005005321276932.html)
+- [Módulo de expansión de interfaz IIC Hub I2C](https://es.aliexpress.com/item/1005002811407142.html)
+
+> Puedes usar módulos equivalentes compatibles con ESP32 y ESPHome.
 # ![Portada del proyecto](portada.png)
 # esphome-homeassistant-lab
 
