@@ -1,0 +1,10 @@
+# Sensor REST de VWCE para Home Assistant
+- platform: rest
+  name: vwce_precio_yahoo
+  unique_id: vwce_precio_yahoo
+  resource: https://query1.finance.yahoo.com/v8/finance/chart/VWCE.DE
+  value_template: "{{ value_json.chart.result[0].meta.regularMarketPrice }}"
+  scan_interval: 60
+  unit_of_measurement: "EUR"
+  state_class: measurement
+  device_class: monetary

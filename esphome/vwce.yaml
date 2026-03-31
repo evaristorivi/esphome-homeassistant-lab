@@ -1,0 +1,125 @@
+# ------------------------------------------------------------
+# ESPHome: vwce.yaml
+#
+# Ejemplo completo de ESPHome para ESP32:
+# - Obtiene el precio de VWCE directamente desde Internet (Yahoo Finance)
+# - Muestra el valor en pantalla OLED
+# - Expone el sensor a Home Assistant, que lo detecta automáticamente
+#   como entidad, guarda el histórico y permite ver la gráfica del valor
+# -------------------------------------------------------------
+esphome:
+  name: vwce-ticker
+  comment: "ESP32-C3 con pantalla SSD1306 y VWCE"
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: esp-idf
+
+# --- OTA para actualizar firmware por WiFi ---
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+logger:
+  level: DEBUG
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  output_power: 8.5dB
+  fast_connect: false
+  power_save_mode: none
+  reboot_timeout: 15min
+
+i2c:
+  sda: GPIO4
+  scl: GPIO5
+  scan: true
+  frequency: 100kHz   # 400kHz puede fallar en módulos baratos SSD1306
+
+# --- Fuentes ---
+font:
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 12
+  - file: "gfonts://Roboto"
+    id: font_price
+    size: 32
+
+http_request:
+  useragent: "Mozilla/5.0"
+  timeout: 10s
+  verify_ssl: false
+
+# --- Sensor de precio VWCE ---
+sensor:
+  - platform: template
+    name: "VWCE Precio"
+    id: vwce_price
+    unit_of_measurement: "EUR"
+    update_interval: never
+
+# --- Pantalla SSD1306 ---
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    address: 0x3C
+    id: my_display
+    update_interval: 10s
+    lambda: |-
+      float price = id(vwce_price).state;
+
+      // Cabecera
+      it.printf(0, 0, id(font_small), TextAlign::TOP_LEFT, "VWCE");
+      it.printf(127, 0, id(font_small), TextAlign::TOP_RIGHT, "XETRA");
+
+      // Precio grande centrado
+      if (isnan(price)) {
+        it.printf(64, 24, id(font_price), TextAlign::TOP_CENTER, "--- €");
+      } else {
+        it.printf(64, 24, id(font_price), TextAlign::TOP_CENTER, "%.2f €", price);
+      }
+
+# --- Intervalo para consultar Yahoo Finance ---
+interval:
+  - interval: 60s
+    then:
+      - if:
+          condition:
+            wifi.connected:
+          else:
+            - logger.log: "Sin WiFi, saltando petición HTTP"
+          then:
+            - http_request.get:
+                url: "https://query1.finance.yahoo.com/v8/finance/chart/VWCE.DE?interval=1d&range=1d"
+                capture_response: true
+                request_headers:
+                  User-Agent: "Mozilla/5.0"
+                on_response:
+                  then:
+                    - lambda: |-
+                        ESP_LOGI("vwce", "HTTP body: %d chars", (int)body.size());
+                        std::string target = "\"regularMarketPrice\":";
+                        size_t pos = body.find(target);
+                        if (pos == std::string::npos) {
+                          ESP_LOGW("vwce", "regularMarketPrice no encontrado en la respuesta");
+                          ESP_LOGD("vwce", "Inicio body: %.200s", body.c_str());
+                          return;
+                        }
+                        pos += target.length();
+                        while (pos < body.size() && (body[pos] == ' ' || body[pos] == '\t')) pos++;
+                        std::string num;
+                        while (pos < body.size() && (isdigit((unsigned char)body[pos]) || body[pos] == '.' || body[pos] == '-')) {
+                          num += body[pos++];
+                        }
+                        if (num.empty()) { ESP_LOGW("vwce", "Precio vacío tras búsqueda"); return; }
+                        float price = atof(num.c_str());
+                        ESP_LOGI("vwce", "VWCE precio: %.2f EUR", price);
+
+                        // Publicar estado solo
+                        id(vwce_price).publish_state(price);
