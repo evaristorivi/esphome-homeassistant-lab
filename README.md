@@ -1,4 +1,4 @@
-# ![Portada del proyecto](images\portada.png)
+# ![Portada del proyecto](images/portada.png)
 # esphome-homeassistant-lab
 
 
