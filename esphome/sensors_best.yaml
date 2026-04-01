@@ -21,9 +21,11 @@
 #   El AHT20 (±0.3°C) es más preciso que el BMP280 (±0.5°C).
 #   La temperatura del BMP280 se marca internal; se usa la del AHT20.
 #
-# Pantalla OLED: una sola página con los 4 valores óptimos.
-#   Verificado en hardware: caben perfectamente en 128×64 px.
-#   CO₂ en número grande centrado + T, H y P en tres líneas al pie.
+# Pantalla OLED: una sola página, jerarquía visual clara.
+#   CO₂ ocupa el centro con número grande (font 28px).
+#   Bajo el número: calidad del aire (BUENO/ACEPTABLE/MALO/PELIGROSO) a la izq
+#                    y la unidad "ppm" a la dcha — siempre visible.
+#   Al pie: T, H y P en tres columnas (izq · centro · dcha) con font_tiny.
 #
 # Entidades expuestas a Home Assistant (solo las 4 óptimas):
 #   sensor.sensors_best_co2          ppm    SCD40
@@ -71,7 +73,7 @@ font:
     size: 9
   - file: "gfonts://Roboto"
     id: font_big
-    size: 24
+    size: 28   # Más grande = CO₂ más prominente
 
 # ── Sensores ──────────────────────────────────────────────────────────────────
 sensor:
@@ -123,15 +125,15 @@ sensor:
     update_interval: 30s
     internal: true
 
-# ── Pantalla SSD1306 128x64 — una sola página con los 4 valores óptimos ──────
+# ── Pantalla SSD1306 128x64 — una sola página, jerarquía visual clara ────────
 #
 # Layout (píxeles verticales 0-63):
-#   y= 0: cabecera "CO2" / "SCD40" + barras WiFi   (font_tiny  9px)
-#   y=12: línea separadora
-#   y=13: valor CO₂ centrado                        (font_big  24px → acaba y=37)
-#   y=38: temperatura AHT20                         (font_tiny  9px → acaba y=46)
-#   y=47: humedad AHT20                             (font_tiny  9px → acaba y=55)
-#   y=55: presión BMP280                            (font_tiny  9px → acaba y=63)
+#   y= 0: cabecera "CO2" / "SCD40" + barras WiFi   (font_tiny  9px → acaba y= 8)
+#   y=11: línea separadora
+#   y=13: valor CO₂ centrado                        (font_big  28px → acaba y=40)
+#   y=42: calidad (izq) · "ppm" (dcha)             (font_tiny  9px → acaba y=50)
+#   y=52: línea separadora
+#   y=54: T (izq) · H (centro) · P (dcha)          (font_tiny  9px → acaba y=62)
 #
 display:
   - platform: ssd1306_i2c
@@ -145,7 +147,6 @@ display:
       it.printf(127, 0, id(font_tiny), TextAlign::TOP_RIGHT, "SCD40");
 
       // Barras de señal WiFi centradas en la cabecera
-      // RSSI: >= -50 excelente, -60 bien, -70 regular, -80 débil
       int rssi = (int)id(wifi_rssi).state;
       int bars = 0;
       if      (rssi >= -50) bars = 4;
@@ -161,23 +162,36 @@ display:
         if (i < bars) it.filled_rectangle(bx, by, bw, bh[i]);
         else          it.rectangle(bx, by, bw, bh[i]);
       }
-      it.line(0, 12, 127, 12);
+      it.line(0, 11, 127, 11);
 
-      // ── CO₂ grande centrado ───────────────────────────────────────────────
+      // ── CO₂ — número grande centrado ─────────────────────────────────────
       float co2 = id(co2_ppm).state;
       if (isnan(co2)) it.printf(64, 13, id(font_big), TextAlign::TOP_CENTER, "---");
       else            it.printf(64, 13, id(font_big), TextAlign::TOP_CENTER, "%.0f", co2);
 
-      // ── Temperatura, humedad y presión en el pie (valores óptimos) ────────
+      // ── Calidad del aire (izq) · unidad ppm (dcha) ───────────────────────
+      // Umbrales según estándares de calidad del aire en interiores
+      const char* quality;
+      if      (isnan(co2))  quality = "---";
+      else if (co2 > 1500)  quality = "PELIGROSO";
+      else if (co2 > 1000)  quality = "MALO";
+      else if (co2 >  700)  quality = "ACEPTABLE";
+      else                  quality = "BUENO";
+      it.printf(0,   42, id(font_tiny), TextAlign::TOP_LEFT,  "%s", quality);
+      it.printf(127, 42, id(font_tiny), TextAlign::TOP_RIGHT, "ppm");
+
+      it.line(0, 52, 127, 52);
+
+      // ── T · H · P — tres columnas, un sensor óptimo por magnitud ─────────
       float t = id(aht20_temp).state;
       float h = id(aht20_hum).state;
       float p = id(bmp280_press).state;
 
-      if (isnan(t)) it.printf(0, 38, id(font_tiny), "T: --- C");
-      else          it.printf(0, 38, id(font_tiny), "T: %.1f C", t);
+      if (isnan(t)) it.printf(0,   54, id(font_tiny), TextAlign::TOP_LEFT,   "---");
+      else          it.printf(0,   54, id(font_tiny), TextAlign::TOP_LEFT,   "%.1f C", t);
 
-      if (isnan(h)) it.printf(0, 47, id(font_tiny), "H: -- %%");
-      else          it.printf(0, 47, id(font_tiny), "H: %.1f %%", h);
+      if (isnan(h)) it.printf(64,  54, id(font_tiny), TextAlign::TOP_CENTER, "--%");
+      else          it.printf(64,  54, id(font_tiny), TextAlign::TOP_CENTER, "%.0f%%", h);
 
-      if (isnan(p)) it.printf(0, 55, id(font_tiny), "P: ---- hPa");
-      else          it.printf(0, 55, id(font_tiny), "P: %.1f hPa", p);
+      if (isnan(p)) it.printf(127, 54, id(font_tiny), TextAlign::TOP_RIGHT,  "----");
+      else          it.printf(127, 54, id(font_tiny), TextAlign::TOP_RIGHT,  "%.0f hPa", p);

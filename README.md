@@ -497,29 +497,38 @@ Versión producción de `sensors_lab.yaml`: usa los mismos tres sensores físico
 | `sensor.sensors_best_humedad` | % | AHT20 | ±2% RH |
 | `sensor.sensors_best_presion` | hPa | BMP280 | Único barómetro |
 
-### Pantalla OLED: una sola página
+### Pantalla OLED: una sola página, jerarquía visual
 
-Todo cabe en 128×64 px sin necesidad de rotar páginas:
+Todo cabe en 128×64 px. El CO₂ es el dato héroe — ocupa el centro con la fuente más grande. Debajo, el estado de calidad del aire siempre a la vista. Al pie, T, H y P en tres columnas.
 
 ```
-CO2                    SCD40  [wifi]
-────────────────────────────────────
-             1295
-T: 24.0 C
-H: 55.9 %
-P: 1028.6 hPa
+CO2          ▂▄▆█         SCD40
+─────────────────────────────────
+              1295
+BUENO                       ppm
+─────────────────────────────────
+24.0C         56%       1029 hPa
 ```
 
 Layout exacto (coordenada Y de cada elemento):
 
-| y | Contenido | Fuente |
-|---|---|---|
-| 0 | Cabecera + barras WiFi | font_tiny (9 px) |
-| 12 | Línea separadora | — |
-| 13 | Valor CO₂ centrado | font_big (24 px) |
-| 38 | Temperatura AHT20 | font_tiny (9 px) |
-| 47 | Humedad AHT20 | font_tiny (9 px) |
-| 55 | Presión BMP280 | font_tiny (9 px) |
+| y | Contenido | Fuente | Notas |
+|---|---|---|---|
+| 0 | Cabecera + barras WiFi | font_tiny (9 px) | CO2 izq, SCD40 dcha, wifi centro |
+| 11 | Línea separadora | — | |
+| 13 | Valor CO₂ centrado | font_big (**28 px**) | ends y=40 |
+| 42 | Calidad del aire (izq) + "ppm" (dcha) | font_tiny (9 px) | BUENO / ACEPTABLE / MALO / PELIGROSO |
+| 52 | Línea separadora | — | |
+| 54 | T izq · H centro · P dcha | font_tiny (9 px) | tres columnas con TextAlign |
+
+**Umbrales de calidad del aire:**
+
+| CO₂ (ppm) | Texto en pantalla |
+|---|---|
+| ≤ 700 | `BUENO` |
+| 701 – 1000 | `ACEPTABLE` |
+| 1001 – 1500 | `MALO` |
+| > 1500 | `PELIGROSO` |
 
 ---
 
