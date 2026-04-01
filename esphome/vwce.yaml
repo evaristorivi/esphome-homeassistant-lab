@@ -53,9 +53,23 @@ font:
     size: 32
 
 http_request:
-  useragent: "Mozilla/5.0"
+  useragent: "Mozilla/5.0"  # Yahoo Finance bloquea peticiones sin user-agent de navegador
   timeout: 10s
-  verify_ssl: false
+  # verify_ssl: true  # Default: true. Desactivar (false) si hay problemas de handshake SSL
+
+# --- LED integrado GPIO8 (desactivado) ---
+# El ESP32-C3 Super Mini tiene un LED azul simple en GPIO8 (no es RGB).
+# El pin es invertido: LOW = encendido, HIGH = apagado.
+# Descomentar para que aparezca un botón en Home Assistant con el que
+# encender/apagar el LED manualmente — útil solo para pruebas.
+# light:
+#   - platform: status_led
+#     name: "LED"
+#     id: led_status
+#     pin:
+#       number: GPIO8
+#       inverted: true
+#     restore_mode: ALWAYS_OFF
 
 # --- Sensores ---
 sensor:

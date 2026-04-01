@@ -62,6 +62,20 @@ sensor:
     update_interval: 30s
     internal: true
 
+# --- LED integrado GPIO8 (desactivado) ---
+# El ESP32-C3 Super Mini tiene un LED azul simple en GPIO8 (no es RGB).
+# El pin es invertido: LOW = encendido, HIGH = apagado.
+# Descomentar para que aparezca un botón en Home Assistant con el que
+# encender/apagar el LED manualmente — útil solo para pruebas.
+# light:
+#   - platform: status_led
+#     name: "LED"
+#     id: led_status
+#     pin:
+#       number: GPIO8
+#       inverted: true
+#     restore_mode: ALWAYS_OFF
+
 display:
   - platform: ssd1306_i2c
     model: "SSD1306 128x64"

@@ -239,14 +239,17 @@ wifi:
 
 Las tres opciones comentadas son workarounds para problemas de conectividad y no son necesarias en condiciones normales. El resto de opciones WiFi (`fast_connect`, `reboot_timeout`) coinciden con los valores por defecto de ESPHome y no es necesario especificarlos.
 
-### HTTP request (`verify_ssl`)
+### HTTP request
 
 ```yaml
 http_request:
-  verify_ssl: false
+  useragent: "Mozilla/5.0"
+  timeout: 10s
 ```
 
-`verify_ssl: false` desactiva la verificación del certificado SSL al conectarse a Yahoo Finance. Esto significa que la conexión HTTPS se cifra pero no se autentica — el ESP32 no comprueba que realmente está hablando con Yahoo. El riesgo real es bajo en una red doméstica para este uso concreto (leer un precio público de bolsa), pero la opción correcta sería `true`. Con versiones recientes de ESPHome y esp-idf funciona bien si quieres activarlo.
+`useragent: "Mozilla/5.0"` hace que el ESP32 se identifique como un navegador al conectarse a Yahoo Finance. Sin esto, Yahoo detecta la petición como un bot y responde con error o datos vacíos. Es un workaround habitual para APIs públicas sin acceso oficial.
+
+`verify_ssl` no se especifica porque el default es `true` — la conexión HTTPS verifica el certificado de Yahoo correctamente con versiones recientes de ESPHome y esp-idf.
 
 ### Bus I2C
 
@@ -284,6 +287,29 @@ sensor:
 - `update_interval: never` — el sensor no se actualiza en ningún ciclo automático; solo cambia cuando el código llama explícitamente a `publish_state()`.
 
 **`internal: true`** — propiedad disponible en cualquier sensor. Cuando está activo, el sensor funciona internamente en el ESP32 pero **no se expone a Home Assistant**: HA no crea ninguna entidad, no guarda histórico ni consume espacio en su base de datos. Se usa en `wifi_rssi` (solo necesario para dibujar las barras en la pantalla) y en `vwce_price` de `vwce_dummy.yaml` (HA ya tiene su propio sensor REST con ese dato; reexponérselo desde el ESP32 sería redundante).
+
+### LED integrado
+
+El **ESP32-C3 Super Mini** tiene un LED azul simple en **GPIO8**. No es RGB — solo encendido/apagado.
+
+El pin es **invertido**: `LOW` = encendido, `HIGH` = apagado. De ahí el `inverted: true` en la configuración.
+
+Ambos YAML incluyen el bloque siguiente **comentado**:
+
+```yaml
+# light:
+#   - platform: status_led
+#     name: "LED"
+#     id: led_status
+#     pin:
+#       number: GPIO8
+#       inverted: true
+#     restore_mode: ALWAYS_OFF
+```
+
+Si lo descomentas y flasheas, aparece un botón en Home Assistant para encender y apagar el LED manualmente. Es útil para verificar que el pin funciona y entender cómo ESPHome expone controles a HA — pero para uso normal no hace falta tenerlo activo.
+
+> **Nota:** el ESP32-C3 *Mini* (distinto al *Super Mini*) sí tiene un LED RGB (WS2812) también en GPIO8 pero con lógica diferente. Para ese board habría que usar `esp32_rmt_led_strip` en lugar de `status_led`.
 
 ---
 
