@@ -178,7 +178,7 @@ esphome run esphome/vwce_dummy.yaml --device vwce-dummy.local
 Conecta tres sensores físicos al ESP32 y muestra todos sus datos en la pantalla OLED con **dos páginas que rotan automáticamente cada 6 segundos**. Todos los valores se exponen a Home Assistant como entidades independientes con histórico.
 
 <p align="center">
-  <img src="images/todos_los_sensores.jpeg" alt="Todos los sensores conectados" style="width:80%;">
+  <img src="images/todos_los_sensores.png" alt="Todos los sensores conectados" style="width:80%;">
 </p>
 
 ### Sensores conectados
