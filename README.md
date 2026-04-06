@@ -53,6 +53,32 @@ Todos los módulos se comunican por el bus **I2C** — solo 4 cables: VCC, GND, 
 
 ---
 
+## Home Assistant
+
+Home Assistant es la plataforma de domótica que centraliza los datos de los sensores, muestra gráficas y permite crear automatizaciones. Puede instalarse en Raspberry Pi, PC, NAS, máquina virtual, etc.
+
+Documentación oficial de instalación: [https://www.home-assistant.io/installation/](https://www.home-assistant.io/installation/)
+
+### Ejemplo: instalación en Raspberry Pi con Docker
+
+```sh
+docker pull ghcr.io/home-assistant/raspberrypi4-homeassistant:stable
+
+docker run -d \
+  --name homeassistant \
+  --restart=unless-stopped \
+  -v /root/homeassistant:/config \
+  -e TZ=Europe/Madrid \
+  --network=host \
+  ghcr.io/home-assistant/raspberrypi4-homeassistant:stable
+```
+
+> Cambia `/root/homeassistant` por la ruta donde quieras guardar la configuración y `Europe/Madrid` por tu zona horaria si es diferente.
+
+Una vez arrancado, accede a `http://<IP_DE_TU_RASPBERRY>:8123` desde el navegador para completar la configuración inicial.
+
+---
+
 ## Primeros pasos
 
 ### 1. Instala ESPHome
