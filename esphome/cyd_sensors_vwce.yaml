@@ -1,0 +1,840 @@
+# ============================================================================
+# ESPHome: cyd_sensors_vwce.yaml
+#
+# ESP32-2432S028R (CYD — Cheap Yellow Display) con sensores I²C conectados
+# directamente al conector CN1.
+#
+# Pantalla TFT 2.8" ST7789 (320×240 landscape) con interfaz gráfica
+# LVGL moderna y navegación táctil (XPT2046 resistivo).
+#
+# Páginas:
+#   1 · CO₂          ppm    SCD40        (verde)
+#   2 · Temperatura   °C     AHT20       (naranja)
+#   3 · Humedad       %      AHT20       (azul)
+#   4 · Presión       hPa    BMP280      (púrpura)
+#   5 · VWCE          EUR    Yahoo Finance (HTTP directo) (dorado)
+#
+# Sensores físicos I²C en conector CN1:
+#   SDA → GPIO22
+#   SCL → GPIO27
+#   VCC → 3.3V
+#   GND → GND
+#
+# VWCE se consulta directamente a Yahoo Finance via HTTP — sin Home Assistant.
+#
+# Hardware CYD integrado utilizado:
+#   - Display ST7789 240×320 SPI (HSPI)
+#   - Táctil XPT2046 resistivo SPI (VSPI)
+#   - Retroiluminación PWM en GPIO21
+#   - LED RGB integrado (GPIO4/R, GPIO16/G, GPIO17/B — activo-bajo)
+# ============================================================================
+
+esphome:
+  name: sensors-cyd-vwce
+  comment: "ESP32-2432S028R (CYD): TFT 2.8\" LVGL — sensores I2C directos + VWCE (HTTP directo)"
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+logger:
+  level: DEBUG
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+
+# ── Variable global — auto-rotación de páginas ───────────────────────────────
+globals:
+  - id: auto_rotate
+    type: bool
+    initial_value: 'true'
+  - id: brightness_mode
+    type: int
+    initial_value: '0'
+  - id: screen_dimmed
+    type: bool
+    initial_value: 'false'
+
+# ── Bus I²C — conector CN1 del CYD ──────────────────────────────────────────
+i2c:
+  sda: GPIO22
+  scl: GPIO27
+  scan: true
+  frequency: 100kHz
+
+http_request:
+  useragent: "Mozilla/5.0"
+  timeout: 10s
+
+# ── Buses SPI ─────────────────────────────────────────────────────────────────
+# El CYD tiene dos buses SPI independientes:
+#   HSPI → pantalla ST7789
+#   VSPI → táctil XPT2046
+spi:
+  - id: spi_display
+    clk_pin: GPIO14
+    mosi_pin: GPIO13
+    miso_pin: GPIO12
+  - id: spi_touch
+    clk_pin: GPIO25
+    mosi_pin: GPIO32
+    miso_pin: GPIO39
+
+# ── Salidas PWM ───────────────────────────────────────────────────────────────
+output:
+  # Retroiluminación del display
+  - platform: ledc
+    id: backlight_pwm
+    pin: GPIO21
+
+  # LED RGB integrado del CYD (activo-bajo)
+  - platform: ledc
+    id: led_red
+    pin:
+      number: GPIO4
+      inverted: true
+  - platform: ledc
+    id: led_green
+    pin:
+      number: GPIO16
+      inverted: true
+  - platform: ledc
+    id: led_blue
+    pin:
+      number: GPIO17
+      inverted: true
+
+# ── Luces ─────────────────────────────────────────────────────────────────────
+light:
+  - platform: monochromatic
+    id: backlight
+    output: backlight_pwm
+    name: "CYD Backlight"
+    restore_mode: ALWAYS_ON
+
+  - platform: rgb
+    id: rgb_led
+    name: "CYD LED RGB"
+    red: led_red
+    green: led_green
+    blue: led_blue
+    restore_mode: ALWAYS_OFF
+
+# ── Sensores ──────────────────────────────────────────────────────────────────
+sensor:
+
+  # BMP280 — solo presión (temperatura internal, AHT20 es más preciso)
+  - platform: bmp280_i2c
+    address: 0x77
+    update_interval: 30s
+    temperature:
+      name: "BMP280 Temperatura"
+      id: bmp280_temp
+      internal: true
+    pressure:
+      name: "Presion"
+      id: bmp280_press
+      on_value:
+        - lvgl.label.update:
+            id: lbl_press_value
+            text:
+              format: "%.0f"
+              args: ['x']
+
+  # SCD40/SCD41 — CO₂ (T y H internos del SCD tienen self-heating)
+  - platform: scd4x
+    address: 0x62
+    update_interval: 30s
+    ambient_pressure_compensation_source: bmp280_press
+    co2:
+      name: "CO2"
+      id: co2_ppm
+      on_value:
+        - lvgl.label.update:
+            id: lbl_co2_value
+            text:
+              format: "%.0f"
+              args: ['x']
+        - lvgl.label.update:
+            id: lbl_co2_quality
+            text: !lambda |-
+              if (x > 1500) return "#FF4444 PELIGROSO#";
+              if (x > 1000) return "#FF9100 MALO#";
+              if (x >  700) return "#FFD600 ACEPTABLE#";
+              return "#00E676 BUENO#";
+    temperature:
+      name: "SCD4x Temperatura"
+      id: scd4x_temp
+      internal: true
+    humidity:
+      name: "SCD4x Humedad"
+      id: scd4x_hum
+      internal: true
+
+  # AHT20 — temperatura (±0.3°C) y humedad (±2% RH)
+  - platform: aht10
+    variant: AHT20
+    address: 0x38
+    update_interval: 30s
+    temperature:
+      name: "Temperatura"
+      id: aht20_temp
+      on_value:
+        - lvgl.label.update:
+            id: lbl_temp_value
+            text:
+              format: "%.1f"
+              args: ['x']
+    humidity:
+      name: "Humedad"
+      id: aht20_hum
+      on_value:
+        - lvgl.label.update:
+            id: lbl_hum_value
+            text:
+              format: "%.0f"
+              args: ['x']
+
+  # VWCE — precio obtenido por HTTP desde Yahoo Finance
+  - platform: template
+    name: "VWCE Precio"
+    id: vwce_price
+    unit_of_measurement: "EUR"
+    update_interval: never
+    on_value:
+      - lvgl.label.update:
+          id: lbl_vwce_value
+          text:
+            format: "%.2f"
+            args: ['x']
+
+  # WiFi RSSI — solo interno
+  - platform: wifi_signal
+    id: wifi_rssi
+    update_interval: 30s
+    internal: true
+
+# ── Indicador WiFi + Yahoo Finance + Auto-rotación ────────────────────────────
+interval:
+  - interval: 5s
+    then:
+      - if:
+          condition:
+            wifi.connected:
+          then:
+            - lvgl.widget.update:
+                id: lbl_wifi
+                text_color: 0x4ADE80
+          else:
+            - lvgl.widget.update:
+                id: lbl_wifi
+                text_color: 0xFF4444
+
+  # Consulta Yahoo Finance cada 60 s
+  - interval: 60s
+    then:
+      - if:
+          condition:
+            wifi.connected:
+          else:
+            - logger.log: "Sin WiFi, saltando petición HTTP"
+          then:
+            - http_request.get:
+                url: "https://query1.finance.yahoo.com/v8/finance/chart/VWCE.DE?interval=1d&range=1d"
+                capture_response: true
+                request_headers:
+                  User-Agent: "Mozilla/5.0"
+                on_response:
+                  then:
+                    - lambda: |-
+                        std::string target = "\"regularMarketPrice\":";
+                        size_t pos = body.find(target);
+                        if (pos == std::string::npos) {
+                          ESP_LOGW("vwce", "regularMarketPrice no encontrado");
+                          return;
+                        }
+                        pos += target.length();
+                        while (pos < body.size() && (body[pos] == ' ' || body[pos] == '\t')) pos++;
+                        std::string num;
+                        while (pos < body.size() && (isdigit((unsigned char)body[pos]) || body[pos] == '.' || body[pos] == '-')) {
+                          num += body[pos++];
+                        }
+                        if (num.empty()) { ESP_LOGW("vwce", "Precio vacío"); return; }
+                        float price = atof(num.c_str());
+                        ESP_LOGI("vwce", "VWCE precio: %.2f EUR", price);
+                        id(vwce_price).publish_state(price);
+
+  # Auto-rotación de páginas (cada 8 s si está activada)
+  - interval: 8s
+    then:
+      - if:
+          condition:
+            lambda: 'return id(auto_rotate);'
+          then:
+            - lvgl.page.next:
+                animation: MOVE_LEFT
+                time: 300ms
+
+# ── Pantalla ST7789 ──────────────────────────────────────────────────────────
+# Landscape 320×240 mediante rotación hardware (transform).
+display:
+  - platform: ili9xxx
+    model: st7789v
+    id: cyd_display
+    spi_id: spi_display
+    cs_pin: GPIO15
+    dc_pin: GPIO2
+    color_order: bgr
+    invert_colors: false
+    data_rate: 40MHz
+    dimensions:
+      width: 320
+      height: 240
+    transform:
+      swap_xy: true
+      mirror_x: true
+    auto_clear_enabled: false
+    update_interval: never
+
+# ── Pantalla táctil XPT2046 ──────────────────────────────────────────────────
+touchscreen:
+  - platform: xpt2046
+    id: cyd_touch
+    spi_id: spi_touch
+    cs_pin: GPIO33
+    interrupt_pin: GPIO36
+    update_interval: 10ms
+    threshold: 250
+    calibration:
+      x_min: 280
+      x_max: 3860
+      y_min: 340
+      y_max: 3860
+    transform:
+      swap_xy: true
+      mirror_x: true
+    on_touch:
+      - lambda: |-
+          if (id(screen_dimmed)) {
+            id(screen_dimmed) = false;
+            float levels[] = {1.0f, 1.0f, 0.5f, 0.25f};
+            auto call = id(backlight).turn_on();
+            call.set_brightness(levels[id(brightness_mode)]);
+            call.set_transition_length(300);
+            call.perform();
+          }
+
+# ══════════════════════════════════════════════════════════════════════════════
+#                        LVGL — Interfaz gráfica
+# ══════════════════════════════════════════════════════════════════════════════
+lvgl:
+  displays:
+    - cyd_display
+  touchscreens:
+    - cyd_touch
+  buffer_size: 25%
+  color_depth: 16
+  default_font: montserrat_14
+  page_wrap: true
+
+  on_idle:
+    timeout: 30s
+    then:
+      - if:
+          condition:
+            lambda: 'return id(brightness_mode) == 0;'
+          then:
+            - lambda: 'id(screen_dimmed) = true;'
+            - light.turn_on:
+                id: backlight
+                brightness: 20%
+                transition_length: 2s
+
+  # ── Estilos reutilizables ──────────────────────────────────────────────────
+  style_definitions:
+    - id: style_card
+      bg_color: 0x161B22
+      bg_opa: cover
+      radius: 16
+      border_width: 1
+      border_color: 0x30363D
+      border_opa: 60%
+      shadow_color: 0x000000
+      shadow_width: 15
+      shadow_opa: 25%
+      shadow_ofs_y: 4
+
+  # ── Capa superior — siempre visible ────────────────────────────────────────
+  top_layer:
+    widgets:
+      # Icono WiFi (esquina superior derecha)
+      - label:
+          id: lbl_wifi
+          x: 290
+          y: 8
+          text: "\uF1EB"
+          text_font: montserrat_18
+          text_color: 0x808090
+
+      # Botón ‹ atrás (franja lateral izquierda — zona amplia de toque)
+      - button:
+          x: 0
+          y: 20
+          width: 50
+          height: 200
+          bg_opa: transp
+          border_width: 0
+          shadow_width: 0
+          on_click:
+            - lvgl.page.next:
+                animation: MOVE_RIGHT
+                time: 300ms
+          widgets:
+            - label:
+                align: CENTER
+                text: "\uF053"
+                text_font: montserrat_28
+                text_color: 0x606080
+
+      # Botón › adelante (franja lateral derecha — zona amplia de toque)
+      - button:
+          x: 270
+          y: 20
+          width: 50
+          height: 200
+          bg_opa: transp
+          border_width: 0
+          shadow_width: 0
+          on_click:
+            - lvgl.page.previous:
+                animation: MOVE_LEFT
+                time: 300ms
+          widgets:
+            - label:
+                align: CENTER
+                text: "\uF054"
+                text_font: montserrat_28
+                text_color: 0x606080
+
+      # ── Botón inferior — pausa/play auto-rotación (centrado) ──────────
+      - button:
+          x: 112
+          y: 186
+          width: 96
+          height: 30
+          bg_opa: transp
+          border_width: 0
+          shadow_width: 0
+          on_click:
+            - lambda: 'id(auto_rotate) = !id(auto_rotate);'
+            - if:
+                condition:
+                  lambda: 'return id(auto_rotate);'
+                then:
+                  - lvgl.label.update:
+                      id: lbl_auto_rotate
+                      text: "\uF04C"
+                      text_color: 0x4ADE80
+                else:
+                  - lvgl.label.update:
+                      id: lbl_auto_rotate
+                      text: "\uF04B"
+                      text_color: 0x606080
+          widgets:
+            - label:
+                id: lbl_auto_rotate
+                align: CENTER
+                text: "\uF04C"
+                text_font: montserrat_14
+                text_color: 0x4ADE80
+
+      # ── Indicadores de página (5 puntos) ────────────────────────────────
+      - obj:
+          id: dot_co2
+          x: 132
+          y: 224
+          width: 8
+          height: 8
+          radius: 4
+          bg_color: 0xFFFFFF
+          bg_opa: cover
+          border_width: 0
+          clickable: false
+      - obj:
+          id: dot_temp
+          x: 146
+          y: 224
+          width: 8
+          height: 8
+          radius: 4
+          bg_color: 0x404060
+          bg_opa: cover
+          border_width: 0
+          clickable: false
+      - obj:
+          id: dot_hum
+          x: 160
+          y: 224
+          width: 8
+          height: 8
+          radius: 4
+          bg_color: 0x404060
+          bg_opa: cover
+          border_width: 0
+          clickable: false
+      - obj:
+          id: dot_press
+          x: 174
+          y: 224
+          width: 8
+          height: 8
+          radius: 4
+          bg_color: 0x404060
+          bg_opa: cover
+          border_width: 0
+          clickable: false
+      - obj:
+          id: dot_vwce
+          x: 188
+          y: 224
+          width: 8
+          height: 8
+          radius: 4
+          bg_color: 0x404060
+          bg_opa: cover
+          border_width: 0
+          clickable: false
+
+  # ══════════════════════════════════════════════════════════════════════════
+  #                              PÁGINAS
+  # ══════════════════════════════════════════════════════════════════════════
+  pages:
+
+    # ── Página 1: CO₂ ─────────────────────────────────────────── verde ──
+    - id: page_co2
+      on_load:
+        - lvgl.widget.update:
+            id: dot_co2
+            bg_color: 0x00E676
+        - lvgl.widget.update:
+            id: [dot_temp, dot_hum, dot_press, dot_vwce]
+            bg_color: 0x404060
+      widgets:
+        - obj:
+            width: 320
+            height: 240
+            bg_color: 0x0D1117
+            bg_opa: cover
+            radius: 0
+            pad_all: 0
+            border_width: 0
+            scrollable: false
+            widgets:
+              # Barra de acento superior
+              - obj:
+                  x: 0
+                  y: 0
+                  width: 320
+                  height: 3
+                  bg_color: 0x00E676
+                  bg_opa: cover
+                  radius: 0
+                  border_width: 0
+                  clickable: false
+              # Título
+              - label:
+                  x: 16
+                  y: 12
+                  text: "CO2"
+                  text_font: montserrat_22
+                  text_color: 0x00E676
+              # Tarjeta central
+              - obj:
+                  styles: style_card
+                  align: CENTER
+                  y: -8
+                  width: 260
+                  height: 115
+                  clickable: false
+                  scrollable: false
+                  gesture_bubble: true
+                  widgets:
+                    - label:
+                        id: lbl_co2_value
+                        align: CENTER
+                        y: -12
+                        text: "---"
+                        text_font: montserrat_48
+                        text_color: 0xFFFFFF
+                    - label:
+                        align: CENTER
+                        y: 30
+                        text: "ppm"
+                        text_font: montserrat_16
+                        text_color: 0x808090
+              # Calidad del aire (con recolor para color dinámico)
+              - label:
+                  id: lbl_co2_quality
+                  align: CENTER
+                  y: 70
+                  text: ""
+                  text_font: montserrat_14
+                  text_color: 0x00E676
+                  recolor: true
+
+    # ── Página 2: Temperatura ─────────────────────────────── naranja ──
+    - id: page_temp
+      on_load:
+        - lvgl.widget.update:
+            id: dot_temp
+            bg_color: 0xFF6D00
+        - lvgl.widget.update:
+            id: [dot_co2, dot_hum, dot_press, dot_vwce]
+            bg_color: 0x404060
+      widgets:
+        - obj:
+            width: 320
+            height: 240
+            bg_color: 0x0D1117
+            bg_opa: cover
+            radius: 0
+            pad_all: 0
+            border_width: 0
+            scrollable: false
+            widgets:
+              - obj:
+                  x: 0
+                  y: 0
+                  width: 320
+                  height: 3
+                  bg_color: 0xFF6D00
+                  bg_opa: cover
+                  radius: 0
+                  border_width: 0
+                  clickable: false
+              - label:
+                  x: 16
+                  y: 12
+                  text: "TEMPERATURA"
+                  text_font: montserrat_22
+                  text_color: 0xFF6D00
+              - obj:
+                  styles: style_card
+                  align: CENTER
+                  y: -5
+                  width: 260
+                  height: 115
+                  clickable: false
+                  scrollable: false
+                  gesture_bubble: true
+                  widgets:
+                    - label:
+                        id: lbl_temp_value
+                        align: CENTER
+                        y: -12
+                        text: "---"
+                        text_font: montserrat_48
+                        text_color: 0xFFFFFF
+                    - label:
+                        align: CENTER
+                        y: 30
+                        text: "°C"
+                        text_font: montserrat_16
+                        text_color: 0x808090
+
+    # ── Página 3: Humedad ──────────────────────────────────── azul ──
+    - id: page_hum
+      on_load:
+        - lvgl.widget.update:
+            id: dot_hum
+            bg_color: 0x2979FF
+        - lvgl.widget.update:
+            id: [dot_co2, dot_temp, dot_press, dot_vwce]
+            bg_color: 0x404060
+      widgets:
+        - obj:
+            width: 320
+            height: 240
+            bg_color: 0x0D1117
+            bg_opa: cover
+            radius: 0
+            pad_all: 0
+            border_width: 0
+            scrollable: false
+            widgets:
+              - obj:
+                  x: 0
+                  y: 0
+                  width: 320
+                  height: 3
+                  bg_color: 0x2979FF
+                  bg_opa: cover
+                  radius: 0
+                  border_width: 0
+                  clickable: false
+              - label:
+                  x: 16
+                  y: 12
+                  text: "HUMEDAD"
+                  text_font: montserrat_22
+                  text_color: 0x2979FF
+              - obj:
+                  styles: style_card
+                  align: CENTER
+                  y: -5
+                  width: 260
+                  height: 115
+                  clickable: false
+                  scrollable: false
+                  gesture_bubble: true
+                  widgets:
+                    - label:
+                        id: lbl_hum_value
+                        align: CENTER
+                        y: -12
+                        text: "---"
+                        text_font: montserrat_48
+                        text_color: 0xFFFFFF
+                    - label:
+                        align: CENTER
+                        y: 30
+                        text: "%"
+                        text_font: montserrat_16
+                        text_color: 0x808090
+
+    # ── Página 4: Presión ────────────────────────────────── púrpura ──
+    - id: page_press
+      on_load:
+        - lvgl.widget.update:
+            id: dot_press
+            bg_color: 0xAA00FF
+        - lvgl.widget.update:
+            id: [dot_co2, dot_temp, dot_hum, dot_vwce]
+            bg_color: 0x404060
+      widgets:
+        - obj:
+            width: 320
+            height: 240
+            bg_color: 0x0D1117
+            bg_opa: cover
+            radius: 0
+            pad_all: 0
+            border_width: 0
+            scrollable: false
+            widgets:
+              - obj:
+                  x: 0
+                  y: 0
+                  width: 320
+                  height: 3
+                  bg_color: 0xAA00FF
+                  bg_opa: cover
+                  radius: 0
+                  border_width: 0
+                  clickable: false
+              - label:
+                  x: 16
+                  y: 12
+                  text: "PRESION"
+                  text_font: montserrat_22
+                  text_color: 0xAA00FF
+              - obj:
+                  styles: style_card
+                  align: CENTER
+                  y: -5
+                  width: 260
+                  height: 115
+                  clickable: false
+                  scrollable: false
+                  gesture_bubble: true
+                  widgets:
+                    - label:
+                        id: lbl_press_value
+                        align: CENTER
+                        y: -12
+                        text: "---"
+                        text_font: montserrat_48
+                        text_color: 0xFFFFFF
+                    - label:
+                        align: CENTER
+                        y: 30
+                        text: "hPa"
+                        text_font: montserrat_16
+                        text_color: 0x808090
+
+    # ── Página 5: VWCE ────────────────────────────────────── dorado ──
+    - id: page_vwce
+      on_load:
+        - lvgl.widget.update:
+            id: dot_vwce
+            bg_color: 0xFFD600
+        - lvgl.widget.update:
+            id: [dot_co2, dot_temp, dot_hum, dot_press]
+            bg_color: 0x404060
+      widgets:
+        - obj:
+            width: 320
+            height: 240
+            bg_color: 0x0D1117
+            bg_opa: cover
+            radius: 0
+            pad_all: 0
+            border_width: 0
+            scrollable: false
+            widgets:
+              - obj:
+                  x: 0
+                  y: 0
+                  width: 320
+                  height: 3
+                  bg_color: 0xFFD600
+                  bg_opa: cover
+                  radius: 0
+                  border_width: 0
+                  clickable: false
+              - label:
+                  x: 16
+                  y: 12
+                  text: "VWCE"
+                  text_font: montserrat_22
+                  text_color: 0xFFD600
+              - label:
+                  x: 250
+                  y: 16
+                  text: "XETRA"
+                  text_font: montserrat_14
+                  text_color: 0x808090
+              - obj:
+                  styles: style_card
+                  align: CENTER
+                  y: -5
+                  width: 260
+                  height: 115
+                  clickable: false
+                  scrollable: false
+                  gesture_bubble: true
+                  widgets:
+                    - label:
+                        id: lbl_vwce_value
+                        align: CENTER
+                        y: -12
+                        text: "---"
+                        text_font: montserrat_48
+                        text_color: 0xFFFFFF
+                    - label:
+                        align: CENTER
+                        y: 30
+                        text: "EUR"
+                        text_font: montserrat_16
+                        text_color: 0x808090

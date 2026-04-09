@@ -78,10 +78,24 @@ font:
 # ── Sensores ──────────────────────────────────────────────────────────────────
 sensor:
 
+  # BMP280 — solo presión se expone; temperatura es internal (AHT20 es más preciso)
+  # Dirección: 0x77 si SDO → VCC (habitual en módulos AHT20+BMP280 combinados)
+  - platform: bmp280_i2c
+    address: 0x77
+    update_interval: 30s
+    temperature:
+      name: "BMP280 Temperatura"
+      id: bmp280_temp
+      internal: true   # ±0.5°C → usar AHT20 (±0.3°C) para temperatura
+    pressure:
+      name: "Presion"
+      id: bmp280_press
+
   # SCD40 / SCD41 — solo CO₂ se expone; T y H son internal (self-heating)
   - platform: scd4x
     address: 0x62
     update_interval: 30s
+    ambient_pressure_compensation_source: bmp280_press
     co2:
       name: "CO2"
       id: co2_ppm
@@ -105,19 +119,6 @@ sensor:
     humidity:
       name: "Humedad"
       id: aht20_hum
-
-  # BMP280 — solo presión se expone; temperatura es internal (AHT20 es más preciso)
-  # Dirección: 0x77 si SDO → VCC (habitual en módulos AHT20+BMP280 combinados)
-  - platform: bmp280_i2c
-    address: 0x77
-    update_interval: 30s
-    temperature:
-      name: "BMP280 Temperatura"
-      id: bmp280_temp
-      internal: true   # ±0.5°C → usar AHT20 (±0.3°C) para temperatura
-    pressure:
-      name: "Presion"
-      id: bmp280_press
 
   # Señal WiFi — solo interno, para el icono en pantalla
   - platform: wifi_signal

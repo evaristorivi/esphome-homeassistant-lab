@@ -8,7 +8,7 @@
 # -------------------------------------------------------------
 
 esphome:
-  name: vwce-ticker
+  name: vwce-ticker-dummy
   comment: "ESP32-C3 con pantalla SSD1306 mostrando precio VWCE desde Home Assistant"
 
 esp32:
