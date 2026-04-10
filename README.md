@@ -5,6 +5,9 @@
 </p>
 
 Ejemplos prácticos para integrar **ESP32** con **ESPHome** y **Home Assistant**, mostrando cómo obtener y visualizar datos ambientales (temperatura, humedad, presión, CO₂) y financieros (precio del ETF VWCE en XETRA).
+<p align="center">
+  <img src="images/eltiempo1.jpeg" alt="eltiempo1.jpeg" style="width:60%;">
+</p>
 
 > 📝 **Artículo en el blog:** [Monitor de CO₂ DIY con ESP32 y Home Assistant — controla la calidad del aire en casa](https://www.evaristorivieccio.es/2026/04/monitor-de-co%e2%82%82-diy-con-esp32-y-home-assistant-controla-la-calidad-del-aire-en-casa.html)
 
@@ -185,31 +188,53 @@ Envía mensajes de diagnóstico por el puerto serie y desde la UI web de ESPHome
 ## Estructura del repositorio
 
 ```
-esphome/
-  c3_vwce.yaml                          # Ticker VWCE autónomo (HTTP directo)
-  c3_vwce_dummy.yaml                    # Ticker VWCE via HA
-  c3_sensors_lab.yaml                   # Estación laboratorio
-  c3_sensors_best.yaml                  # Estación óptima — 1 página
-  c3_sensors_best_pages.yaml            # Estación óptima — 4 páginas
-  c3_sensors_best_pages_vwce.yaml       # Estación + VWCE (HTTP directo)
-  c3_sensors_best_pages_vwce_dummy.yaml # Estación + VWCE (via HA)
-  c3_sensors_best_pages_vwce_dummy_encoder.yaml # Estación + VWCE (via HA) + encoder KY-040
-  cyd_dummy.yaml                        # CYD — datos desde HA, sin sensores físicos
-  cyd_sensors_vwce_dummy.yaml           # CYD — sensores I²C directos + VWCE via HA
-  cyd_sensors_vwce.yaml                 # CYD — sensores I²C directos + VWCE HTTP directo
-  cyd_weather_dummy.yaml                # CYD — panel meteo + sensores interiores (HA) + prevision + VWCE
-  cyd_weather.yaml                      # CYD — panel meteo + sensores I2C directos + prevision + VWCE
-  secrets.yaml.example                  # Plantilla de credenciales ESPHome
-homeassistant/
-  configuration.yaml                    # Configuración principal de HA
-  vwce_sensor.yaml                      # Sensor REST de VWCE (Yahoo Finance)
-  air_quality_sensor.yaml               # Sensor REST de calidad del aire (Open-Meteo)
-  weather_sensors.yaml                  # Templates: condición actual + previsión horaria/diaria
-  secrets.yaml.example                  # Plantilla de credenciales HA (air_quality_url)
-docs/
-  ESP32_C3.md                           # Guía completa ESP32-C3 Super Mini
-  CYD.md                                # Guía completa CYD
-images/
+.
+├── README.md
+├── docs/
+│   ├── CYD.md
+│   └── ESP32_C3.md
+├── esphome/
+│   ├── .esphome/
+│   ├── .gitignore
+│   ├── c3_sensors_best.yaml
+│   ├── c3_sensors_best_pages.yaml
+│   ├── c3_sensors_best_pages_vwce.yaml
+│   ├── c3_sensors_best_pages_vwce_dummy.yaml
+│   ├── c3_sensors_best_pages_vwce_dummy_encoder.yaml
+│   ├── c3_sensors_lab.yaml
+│   ├── c3_vwce.yaml
+│   ├── c3_vwce_dummy.yaml
+│   ├── cyd_dummy.yaml
+│   ├── cyd_sensors_vwce.yaml
+│   ├── cyd_sensors_vwce_dummy.yaml
+│   ├── cyd_weather.yaml
+│   ├── cyd_weather_dummy.yaml
+│   ├── secrets.yaml
+│   └── secrets.yaml.example
+├── homeassistant/
+│   ├── air_quality_sensor.yaml
+│   ├── configuration.yaml
+│   ├── secrets.yaml.example
+│   ├── vwce_sensor.yaml
+│   └── weather_sensors.yaml
+├── images/
+│   ├── 1.png
+│   ├── cyd.jpeg
+│   ├── cyd2.jpeg
+│   ├── cyd3.jpeg
+│   ├── cyd4.jpeg
+│   ├── cyd5.jpeg
+│   ├── cydpino.png
+│   ├── eltiempo1.jpeg
+│   ├── eltiempo2.jpeg
+│   ├── eltiempo3.jpeg
+│   ├── eltiempo4.jpeg
+│   ├── eltiempo5.jpeg
+│   ├── esquema.webp
+│   ├── HA.jpeg
+│   ├── portada.png
+│   ├── sensores.jpeg
+│   └── todos_los_sensores.png
 ```
 
 ---

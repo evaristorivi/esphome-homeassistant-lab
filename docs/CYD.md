@@ -232,19 +232,11 @@ esphome run esphome/cyd_sensors_vwce.yaml --device sensors-cyd-vwce.local
 
 ### Proyecto 11: CYD estación meteorológica sin sensores I²C (`cyd_weather_dummy.yaml`)
 <p align="center">
-  <img src="../images/eltiempo1.jpeg" alt="eltiempo1.jpeg" style="width:60%;">
+  <img src="../images/eltiempo1.jpeg" alt="Página CO₂ — 686 ppm" style="width:40%;">
+  <img src="../images/eltiempo5.jpeg" alt="Página Humedad — 59%" style="width:40%;">
 </p>
 <p align="center">
-  <img src="../images/eltiempo2.jpeg" alt="eltiempo2.jpeg" style="width:60%;">
-</p>
-<p align="center">
-  <img src="../images/eltiempo3.jpeg" alt="eltiempo3.jpeg" style="width:60%;">
-</p>
-<p align="center">
-  <img src="../images/eltiempo4.jpeg" alt="eltiempo4.jpeg" style="width:60%;">
-</p>
-<p align="center">
-  <img src="../images/eltiempo5.jpeg" alt="eltiempo5.jpeg" style="width:60%;">
+  <img src="../images/eltiempo2.jpeg" alt="Página Presión — 1025 hPa" style="width:40%;">
 </p>
 Pantalla meteorológica con **3 páginas**: panel (meteo exterior + sensores interiores), previsión y VWCE. La información meteorológica viene de Home Assistant a través del template `weather_sensors.yaml`. Los sensores interiores (CO₂, temperatura, humedad, presión) se leen desde HA — publicados por otro ESP32 (ej. ESP32-C3). No necesita sensores físicos conectados al CYD.
 
