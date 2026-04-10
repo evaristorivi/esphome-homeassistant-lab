@@ -81,6 +81,12 @@ globals:
   - id: restart_countdown  # contador regresivo antes de reiniciar (0 = inactivo)
     type: int
     initial_value: '0'
+  - id: oled_on            # estado del OLED (1=encendido, 0=apagado)
+    type: bool
+    initial_value: 'true'
+  - id: double_click_armed # indica si se detectó doble click y se espera pulsación larga
+    type: bool
+    initial_value: 'false'
 
 # ── Fuentes ───────────────────────────────────────────────────────────────────
 font:
@@ -170,6 +176,11 @@ sensor:
     internal: true
     on_clockwise:
       - lambda: |-
+          if (!id(oled_on)) {
+            id(oled_on) = true;
+            id(my_display).turn_on();
+            return;
+          }
           id(last_interaction) = millis();
           id(current_page) = (id(current_page) + 1) % 5;
           switch (id(current_page)) {
@@ -182,6 +193,11 @@ sensor:
       - component.update: my_display
     on_anticlockwise:
       - lambda: |-
+          if (!id(oled_on)) {
+            id(oled_on) = true;
+            id(my_display).turn_on();
+            return;
+          }
           id(last_interaction) = millis();
           id(current_page) = (id(current_page) + 4) % 5;
           switch (id(current_page)) {
@@ -218,12 +234,18 @@ binary_sensor:
     filters:
       - delayed_on: 10ms     # anti-rebote
     on_press:
-      - lambda: 'id(press_start_ms) = millis();'
+      - lambda: |-
+          if (!id(oled_on)) {
+            id(oled_on) = true;
+            id(my_display).turn_on();
+            return;
+          }
+          id(press_start_ms) = millis();
     on_release:
       - if:
           condition:
-            # Pulsación larga (≥5 s) → recalibramos CO2
-            lambda: 'return (millis() - id(press_start_ms)) >= 5000;'
+            # Pulsación larga (≥10 s) → recalibramos CO2
+            lambda: 'return (millis() - id(press_start_ms)) >= 10000;'
           then:
             - logger.log:
                 level: WARN
@@ -236,9 +258,23 @@ binary_sensor:
             # Pulsación corta → click simple / doble click
             - lambda: |-
                 uint32_t now = millis();
+                if (id(double_click_armed)) {
+                  // Si estaba armado por doble click, comprobar si fue pulsación larga (>=2s)
+                  if ((now - id(press_start_ms)) >= 2000) {
+                    id(oled_on) = !id(oled_on);
+                    if (id(oled_on)) {
+                      id(my_display).turn_on();
+                    } else {
+                      id(my_display).turn_off();
+                    }
+                  }
+                  id(double_click_armed) = false;
+                  id(last_click_ms) = 0;
+                  return;
+                }
                 if (id(last_click_ms) != 0 && now - id(last_click_ms) < 400) {
-                  // Doble click — toggle auto-rotación permanente
-                  id(auto_rotate) = !id(auto_rotate);
+                  // Doble click — armar para posible pulsación larga
+                  id(double_click_armed) = true;
                   id(rotate_msg_until) = now + 2000;  // mostrar estado 2 s
                   id(last_click_ms) = 0;
                 } else {
@@ -253,7 +289,7 @@ binary_sensor:
                   - display.page.show: page_rotate_status
                   - component.update: my_display
                 else:
-                  - lambda: 'id(current_page) = 0;'
+                  - lambda: 'if (!id(double_click_armed)) { id(current_page) = 0; }'
                   - display.page.show: page_co2
                   - component.update: my_display
 

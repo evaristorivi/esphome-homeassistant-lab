@@ -31,7 +31,7 @@ El proyecto soporta dos plataformas hardware distintas. Elige la que prefieras:
 | `c3_sensors_best_pages.yaml` | C3 | Estación óptima — 4 páginas a pantalla completa rotatorias |
 | `c3_sensors_best_pages_vwce.yaml` | C3 | Estación óptima + VWCE — 5 páginas, Yahoo Finance directo |
 | `c3_sensors_best_pages_vwce_dummy.yaml` | C3 | Estación óptima + VWCE — 5 páginas, precio desde HA |
-| `c3_sensors_best_pages_vwce_dummy_encoder.yaml` | C3 | Estación óptima + VWCE + encoder KY-040 — rotación automática inteligente, navegación manual, doble click para toggle auto-rotación, pulsación 5s para factory reset CO₂ |
+| `c3_sensors_best_pages_vwce_dummy_encoder.yaml` | C3 | Estación óptima + VWCE + encoder KY-040 — rotación automática inteligente, navegación manual, doble click para toggle auto-rotación, doble click + mantener 2s para apagar OLED, cualquier acción para encender, pulsación 10s para factory reset CO₂ |
 | `cyd_dummy.yaml` | CYD | TFT 2.8" LVGL táctil — todos los datos desde HA (sin sensores físicos en el CYD) |
 | `cyd_sensors_vwce_dummy.yaml` | CYD | TFT 2.8" LVGL táctil — sensores I²C directos + VWCE desde HA |
 | `cyd_sensors_vwce.yaml` | CYD | TFT 2.8" LVGL táctil — sensores I²C directos + VWCE Yahoo Finance directo |

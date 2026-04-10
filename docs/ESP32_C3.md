@@ -326,14 +326,16 @@ esphome run esphome/c3_sensors_best_pages_vwce_dummy.yaml --device COMx
 
 Igual que Proyecto 6 pero la navegación combina **rotación automática inteligente** con **control manual** mediante encoder rotatorio KY-040.
 
+
 #### Comportamiento del encoder
 
 | Acción | Resultado |
 |---|---|
-| Girar el eje | Cambia de página + pausa la auto-rotación 10 s |
-| Click simple | Vuelve a página 1 (CO₂) |
+| Girar el eje | Si el OLED está apagado, lo enciende. Si está encendido, cambia de página y pausa la auto-rotación 10 s |
+| Click simple | Si el OLED está apagado, lo enciende. Si está encendido, vuelve a página 1 (CO₂) |
+| Doble click (< 400 ms) + mantener 2 s | Apaga o enciende el OLED |
 | Doble click (< 400 ms) | Toggle auto-rotación ON/OFF permanente — muestra estado 2 s en pantalla |
-| Pulsación ≥ 5 s | Factory reset del SCD4x — muestra confirmación 3 s en pantalla |
+| Pulsación ≥ 10 s | Factory reset del SCD4x — muestra confirmación 3 s en pantalla |
 | Sin tocar 10 s | La auto-rotación se reanuda sola (si está activa) |
 
 #### Páginas
@@ -350,9 +352,16 @@ Igual que Proyecto 6 pero la navegación combina **rotación automática intelig
 
 > Las páginas de estado nunca aparecen en la rotación automática ni al girar el encoder. Solo se muestran al disparar la acción correspondiente.
 
+
+#### Apagado/encendido del OLED
+
+Para apagar el OLED: haz doble clic y mantén pulsado el segundo clic durante 2 segundos.
+
+Para encender el OLED: basta con girar el encoder o pulsar el botón (cualquier acción lo reactiva).
+
 #### Factory reset del SCD4x
 
-Mantener pulsado el botón del encoder durante **5 segundos** ejecuta `scd4x.factory_reset`: borra la calibración acumulada y reinicia la Auto Self-Calibration (ASC) desde cero. Útil al cambiar de ubicación o si las lecturas se han desviado.
+Mantener pulsado el botón del encoder durante **10 segundos** ejecuta `scd4x.factory_reset`: borra la calibración acumulada y reinicia la Auto Self-Calibration (ASC) desde cero. Útil al cambiar de ubicación o si las lecturas se han desviado.
 
 Secuencia tras soltar el botón:
 1. Se ejecuta `factory_reset` en el SCD4x
