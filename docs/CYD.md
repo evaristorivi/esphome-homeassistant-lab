@@ -120,11 +120,11 @@ Los proyectos 8, 9 y 10 (`cyd_dummy`, `cyd_sensors_vwce_dummy`, `cyd_sensors_vwc
 Los proyectos 11 y 12 (`cyd_weather_dummy`, `cyd_weather`) tienen una interfaz diferente, diseñada para mostrar datos meteorológicos exteriores junto con los sensores interiores.
 
 <p align="center">
-  <img src="../images/eltiempo1.jpeg" alt="Panel principal — meteo + sensores" style="width:40%;">
+  <img src="../images/eltiempo5.jpeg" alt="Panel principal — meteo + sensores" style="width:40%;">
   <img src="../images/eltiempo2.jpeg" alt="Página Previsión" style="width:40%;">
 </p>
 <p align="center">
-  <img src="../images/eltiempo5.jpeg" alt="Página VWCE" style="width:80%;">
+  <img src="../images/eltiempo1.jpeg" alt="Página VWCE" style="width:80%;">
 </p>
 
 ### Estructura de páginas
