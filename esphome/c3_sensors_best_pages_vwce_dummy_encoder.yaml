@@ -7,9 +7,10 @@
 #
 # Comportamiento:
 #   Girar el eje       → cambia de página + pausa auto-rotación 10 s
-#   Click simple       → registra tiempo (espera posible 2º click)
-#   Doble click        → activa/desactiva auto-rotación permanente + va a página 1
-#   Pulsación 5 s      → recalibration forzada del SCD4x (referencia 420 ppm)
+#   Click simple       → registra tiempo (espera posible 2º click); si OLED apagado, lo enciende
+#   Doble click        → activa/desactiva auto-rotación permanente; muestra estado 2 s
+#   Doble click + mantener 2 s → apaga/enciende el OLED
+#   Pulsación ≥ 10 s   → factory reset del SCD4x (borra calibración acumulada)
 #                        (tener el sensor en aire exterior ≥3 min antes)
 #
 # Pines del encoder (libres de I²C GPIO4/5):
@@ -273,7 +274,8 @@ binary_sensor:
                   return;
                 }
                 if (id(last_click_ms) != 0 && now - id(last_click_ms) < 400) {
-                  // Doble click — armar para posible pulsación larga
+                  // Doble click — toggle auto-rotación + armar para posible pulsación larga
+                  id(auto_rotate) = !id(auto_rotate);
                   id(double_click_armed) = true;
                   id(rotate_msg_until) = now + 2000;  // mostrar estado 2 s
                   id(last_click_ms) = 0;

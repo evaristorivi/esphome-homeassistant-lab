@@ -83,12 +83,12 @@ También se pueden cablear en paralelo directamente:
 
 ---
 
-## Interfaz LVGL
+## Interfaz LVGL — Proyectos 8–10 (datos ambientales)
 
-Ambos proyectos CYD usan la misma interfaz gráfica con LVGL:
+Los proyectos 8, 9 y 10 (`cyd_dummy`, `cyd_sensors_vwce_dummy`, `cyd_sensors_vwce`) usan una interfaz de **5 páginas** con barra de acento de color único:
 
 - **Tema oscuro** (fondo `#0D1117`) con tarjetas centrales sombreadas
-- **5 páginas** con barra de acento de color único:
+- **5 páginas:**
   - 🟢 Verde — CO₂
   - 🟠 Naranja — Temperatura
   - 🔵 Azul — Humedad
@@ -102,7 +102,7 @@ Ambos proyectos CYD usan la misma interfaz gráfica con LVGL:
   - 5 puntos indicadores de página activa
   - Navegación circular (`page_wrap: true`)
 - **Icono WiFi** — verde = conectado, rojo = desconectado
-- **Auto-dim** del backlight tras 30 s sin tocar — se restaura al tocar
+- **Auto-dim** del backlight tras 60 s sin tocar — se restaura al tocar
 
 <p align="center">
   <img src="../images/cyd2.jpeg" alt="Página CO₂ — 686 ppm" style="width:40%;">
@@ -112,6 +112,78 @@ Ambos proyectos CYD usan la misma interfaz gráfica con LVGL:
   <img src="../images/cyd4.jpeg" alt="Página Presión — 1025 hPa" style="width:40%;">
   <img src="../images/cyd3.jpeg" alt="Página VWCE — 148.16 EUR" style="width:40%;">
 </p>
+
+---
+
+## Interfaz LVGL — Proyectos 11–12 (estación meteorológica)
+
+Los proyectos 11 y 12 (`cyd_weather_dummy`, `cyd_weather`) tienen una interfaz diferente, diseñada para mostrar datos meteorológicos exteriores junto con los sensores interiores.
+
+<p align="center">
+  <img src="../images/eltiempo1.jpeg" alt="Panel principal — meteo + sensores" style="width:40%;">
+  <img src="../images/eltiempo2.jpeg" alt="Página Previsión" style="width:40%;">
+</p>
+<p align="center">
+  <img src="../images/eltiempo3.jpeg" alt="Página VWCE" style="width:40%;">
+</p>
+
+### Estructura de páginas
+
+**3 páginas** con 3 puntos indicadores en la parte inferior:
+
+| Página | Contenido |
+|---|---|
+| 1 — Panel | Icono meteo + temperatura exterior + viento + PM2.5/PM10 + CO₂ + T.INT + HUM + Presión |
+| 2 — Previsión | 4 filas: +3h, +6h, día siguiente (D+1), pasado mañana (D+2) |
+| 3 — VWCE | Precio del fondo VWCE (XETRA) en grande |
+
+### Barra superior
+
+La barra superior ocupa los 24 px superiores de la pantalla y tiene dos zonas:
+
+- **Izquierda**: localización (p.ej. "Luanco") + hora (HH:MM) en el centro
+- **Derecha** (4 iconos): ⏻ · ⏸ · 💡 · 📶
+
+| Icono | Función |
+|---|---|
+| ⏻ (power) | Desactiva/activa el ahorro de energía. Rojo = energía siempre encendida; gris azulado = modo normal |
+| ⏸/▶ (play/pausa) | Activa/pausa la auto-rotación de páginas. **Arranca en ON por defecto.** |
+| 💡 (bombilla) | Cicla el brillo: 100% → 50% → 25% → 100% |
+| 📶 (wifi) | Estado de conexión: verde = conectado, rojo = desconectado |
+
+### Página 1 — Panel
+
+- **Zona izquierda**: icono meteorológico grande (FontAwesome) + temperatura exterior (Montserrat 40 px) + símbolo °C
+- **Zona derecha**: VIENTO en km/h y PM2.5 / PM10 en µg/m³, apilados verticalmente
+- **Grid de sensores interiores** (4 celdas):
+  - CO₂ (ppm) con color dinámico: verde < 700 / amarillo 700–1000 / naranja 1000–1500 / rojo > 1500; "ppm" se posiciona justo al lado del número
+  - T.INT (°C)
+  - HUM (%)
+  - Presión (hPa) — número grande, "hPa" en fuente pequeña
+
+### Página 2 — Previsión
+
+4 filas verticalmente centradas entre el encabezado y los puntos de página:
+
+| Columna | Contenido |
+|---|---|
+| Etiqueta | +3h / +6h / día de la semana (D+1) / día de la semana (D+2) |
+| Icono | Condición meteorológica (FontAwesome) |
+| Temperatura | Valor en °C |
+| Precipitación | Milímetros previstos (mm) |
+| Viento | km/h |
+
+### Página 3 — VWCE
+
+- Precio del fondo VWCE en Montserrat 48 px
+- Badge "XETRA" centrado en la parte inferior
+
+### Comportamiento del backlight
+
+- **Auto-dim**: tras 60 s sin interacción táctil, el brillo baja al 10%
+- **Restaurar**: cualquier toque reactiva el brillo completo
+- **Desactivar**: pulsar ⏻ mantiene el brillo al 100% permanentemente (icono en rojo)
+- **Ajuste manual**: pulsar 💡 cicla entre tres niveles de brillo
 
 ---
 
@@ -135,7 +207,7 @@ Los Proyectos 11 y 12 (`cyd_weather_dummy` y `cyd_weather`) requieren archivos a
 
 | Archivo | Proyectos que lo usan | Qué hace |
 |---|---|---|
-| `vwce_sensor.yaml` | P8, P9, P12 | Sensor REST — precio VWCE desde Yahoo Finance |
+| `vwce_sensor.yaml` | P8, P9, P11, P12 | Sensor REST — precio VWCE desde Yahoo Finance |
 | `air_quality_sensor.yaml` | P11, P12 | Sensor REST — PM2.5 y PM10 desde Open-Meteo (1 req/hora) |
 | `weather_sensors.yaml` | P11, P12 | Templates — condición actual + previsión +3h, +6h, día+1, día+2 |
 
@@ -231,14 +303,8 @@ esphome run esphome/cyd_sensors_vwce.yaml --device sensors-cyd-vwce.local
 ---
 
 ### Proyecto 11: CYD estación meteorológica sin sensores I²C (`cyd_weather_dummy.yaml`)
-<p align="center">
-  <img src="../images/eltiempo1.jpeg" alt="Página CO₂ — 686 ppm" style="width:40%;">
-  <img src="../images/eltiempo5.jpeg" alt="Página Humedad — 59%" style="width:40%;">
-</p>
-<p align="center">
-  <img src="../images/eltiempo2.jpeg" alt="Página Presión — 1025 hPa" style="width:40%;">
-</p>
-Pantalla meteorológica con **3 páginas**: panel (meteo exterior + sensores interiores), previsión y VWCE. La información meteorológica viene de Home Assistant a través del template `weather_sensors.yaml`. Los sensores interiores (CO₂, temperatura, humedad, presión) se leen desde HA — publicados por otro ESP32 (ej. ESP32-C3). No necesita sensores físicos conectados al CYD.
+
+Pantalla meteorológica con **3 páginas** (Panel, Previsión, VWCE). La información meteorológica viene de Home Assistant a través del template `weather_sensors.yaml`. Los sensores interiores (CO₂, temperatura, humedad, presión) se leen desde HA — publicados por otro ESP32 (ej. ESP32-C3). No necesita sensores físicos conectados al CYD.
 
 | Dato | Origen |
 |---|---|

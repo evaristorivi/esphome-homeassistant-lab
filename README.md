@@ -1,12 +1,12 @@
 # esphome-homeassistant-lab
 
 <p align="center">
-  <img src="images/portada.png" alt="Portada del proyecto" style="width:90%;">
+  <img src="images/portada.png" alt="Portada del proyecto" style="width:40%;">
 </p>
 
 Ejemplos prácticos para integrar **ESP32** con **ESPHome** y **Home Assistant**, mostrando cómo obtener y visualizar datos ambientales (temperatura, humedad, presión, CO₂) y financieros (precio del ETF VWCE en XETRA).
 <p align="center">
-  <img src="images/eltiempo1.jpeg" alt="eltiempo1.jpeg" style="width:60%;">
+  <img src="images/eltiempo1.jpeg" alt="eltiempo1.jpeg" style="width:100%;">
 </p>
 
 > 📝 **Artículo en el blog:** [Monitor de CO₂ DIY con ESP32 y Home Assistant — controla la calidad del aire en casa](https://www.evaristorivieccio.es/2026/04/monitor-de-co%e2%82%82-diy-con-esp32-y-home-assistant-controla-la-calidad-del-aire-en-casa.html)
@@ -35,8 +35,8 @@ El proyecto soporta dos plataformas hardware distintas. Elige la que prefieras:
 | `cyd_dummy.yaml` | CYD | TFT 2.8" LVGL táctil — todos los datos desde HA (sin sensores físicos en el CYD) |
 | `cyd_sensors_vwce_dummy.yaml` | CYD | TFT 2.8" LVGL táctil — sensores I²C directos + VWCE desde HA |
 | `cyd_sensors_vwce.yaml` | CYD | TFT 2.8" LVGL táctil — sensores I²C directos + VWCE Yahoo Finance directo |
-| `cyd_weather_dummy.yaml` | CYD | TFT 2.8" LVGL táctil — panel meteo + sensores interiores (via HA) + previsión + VWCE |
-| `cyd_weather.yaml` | CYD | TFT 2.8" LVGL táctil — panel meteo + sensores I²C directos + previsión + VWCE desde HA |
+| `cyd_weather_dummy.yaml` | CYD | TFT 2.8" LVGL táctil — 3 páginas: panel meteo exterior + sensores interiores (via HA) + previsión +3h/+6h/D+1/D+2 + VWCE |
+| `cyd_weather.yaml` | CYD | TFT 2.8" LVGL táctil — 3 páginas: panel meteo exterior + sensores I²C directos + previsión +3h/+6h/D+1/D+2 + VWCE |
 
 ---
 
