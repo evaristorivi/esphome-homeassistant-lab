@@ -366,6 +366,8 @@ Variante del Proyecto 12 pensada para montar el CYD dentro de una **caja 3D impr
 
 Este proyecto añade un **modelo térmico dinámico** que compensa ese error en tiempo real según el estado del backlight.
 
+> 🖨️ **Modelo 3D de la carcasa:** [Thingiverse — thing 7340015](https://www.thingiverse.com/thing:7340015) (adaptación propia de un diseño existente, listo para imprimir).
+
 #### El problema: la caja 3D es un pequeño horno
 
 Cuando encerras el CYD en una caja sin ventilación forzada:
