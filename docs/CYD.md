@@ -369,7 +369,7 @@ Este proyecto añade un **modelo térmico dinámico** que compensa ese error en 
 > 🖨️ **Modelo 3D de la carcasa:** [Thingiverse — thing 7340015](https://www.thingiverse.com/thing:7340015) (adaptación propia de un diseño existente, listo para imprimir).
 
 <p align="center">
-  <img src="../images/cyd-print3d.jpg" alt="CYD montado en carcasa 3D impresa" style="width:100%;">
+  <img src="../images/cyd-print3d.jpg" alt="CYD montado en carcasa 3D impresa" style="width:50%;">
 </p>
 
 #### El problema: la caja 3D es un pequeño horno

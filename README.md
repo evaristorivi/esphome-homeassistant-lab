@@ -8,7 +8,9 @@ Ejemplos prácticos para integrar **ESP32** con **ESPHome** y **Home Assistant**
 <p align="center">
   <img src="images/eltiempo1.jpeg" alt="eltiempo1.jpeg" style="width:100%;">
 </p>
-
+<p align="center">
+  <img src="images/cyd-print3d.jpg" alt="CYD montado en carcasa 3D impresa" style="width:70%;">
+</p>
 > 📝 **Artículo en el blog:** [Monitor de CO₂ DIY con ESP32 y Home Assistant — controla la calidad del aire en casa](https://www.evaristorivieccio.es/2026/04/monitor-de-co%e2%82%82-diy-con-esp32-y-home-assistant-controla-la-calidad-del-aire-en-casa.html)
 
 El proyecto soporta dos plataformas hardware distintas. Elige la que prefieras:
