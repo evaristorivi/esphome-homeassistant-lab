@@ -93,7 +93,7 @@ Todos los proyectos CYD con sensores físicos (P9, P10, P12, P13) usan `measurem
   ambient_pressure_compensation_source: bmp280_press
 ```
 
-El modo por defecto (`periodic`) tiene un bug conocido ([ESPHome issue #2832](https://github.com/esphome/esphome/issues/2832)): la máquina de estados interna del sensor se queda bloqueada aleatoriamente y `data_ready` devuelve `false` de forma permanente — el sensor deja de leer sin aviso. Con `single_shot` cada medición es un disparo independiente, sin estado persistente que pueda bloquearse.
+El modo por defecto (`periodic`) tiene un bug conocido en ESPHome (issue #2832). Resumen y explicación completa: [README → Bug SCD4x (issue #2832)](../README.md#bug-scd4x-issue-2832). Aquí y en este repo usamos `measurement_mode: single_shot`.
 
 > La autocalibracion ASC es compatible con `single_shot` — simplemente acumula las muestras más lentamente.
 

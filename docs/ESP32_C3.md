@@ -234,40 +234,11 @@ La variación meteorológica diaria (±20–30 hPa) introduce un error máximo d
 
 #### Bug del SCD4x: "Data not ready" permanente en modo periódico
 
-El SCD4x tiene un bug documentado ([ESPHome issue #2832](https://github.com/esphome/issues/issues/2832)) por el que su máquina de estados interna en **modo periódico** (el modo por defecto) se queda trabada aleatoriamente. Cuando ocurre:
+Existe un bug conocido en ESPHome (issue #2832) cuando el SCD4x se usa en modo `periodic`.
 
-- El sensor sigue respondiendo en el bus I²C (aparece en el scan de direcciones)
-- `data_ready` devuelve siempre `false`
-- ESPHome registra `[W][scd4x:186]: Data not ready` en cada ciclo
-- Las lecturas de CO₂ cesan indefinidamente — sin recuperación automática
+Resumen y explicación completa (síntomas, causa, por qué pull-ups no lo corrigen y modos de medición): [README → Bug SCD4x (issue #2832)](../README.md#bug-scd4x-issue-2832).
 
-**Síntoma típico:** el sensor lee bien 1–2 veces tras el arranque y luego queda permanentemente en "Data not ready".
-
-**Por qué el pull-up no es la solución:** añadir resistencias pull-up de 4.7 kΩ en SDA/SCL reduce la frecuencia del bug (mejora los flancos I²C) pero no lo elimina. El bug sigue latente y reaparece.
-
-**Solución definitiva: `measurement_mode: single_shot`**
-
-En modo `single_shot` el sensor está en reposo entre lecturas. ESPHome lanza una medición puntual en cada ciclo de `update_interval`, espera 5 s internamente sin bloquear el loop, y lee el resultado. No existe máquina de estados persistente que pueda quedarse trabada — cada medición es completamente independiente.
-
-```yaml
-- platform: scd4x
-  measurement_mode: single_shot
-  update_interval: 30s
-  ambient_pressure_compensation_source: bmp280_press
-```
-
-**Comparativa de modos disponibles:**
-
-| Modo | Comportamiento | Intervalo mínimo | Observación |
-|---|---|---|---|
-| `periodic` *(defecto)* | Mide cada 5 s de forma continua | 5 s | Bug de estado — no recomendado para `update_interval` largo |
-| `low_power_periodic` | Mide cada 30 s de forma continua | 30 s | Mismo bug, menos frecuente |
-| `single_shot` ✓ | Mide solo cuando ESPHome lo pide | 5 s | **Recomendado** para `update_interval: 30s` |
-| `single_shot_rht_only` | Solo temperatura y humedad, sin CO₂ | ~50 ms | Sin uso en estos proyectos |
-
-**Ventaja adicional de `single_shot` para `update_interval: 30s`:** en modo periódico el sensor genera 6 mediciones por cada una que ESPHome lee — las otras 5 se descartan, desperdiciando energía y aumentando el self-heating. Con `single_shot` solo mide cuando toca → temperatura interna menor → la compensación de self-heating (`Temperature offset: 4.00°C`) es más precisa → CO₂ más exacto.
-
-Todos los proyectos de este repositorio usan `measurement_mode: single_shot`.
+En este repositorio se usa `measurement_mode: single_shot` en todos los YAML para evitar ese bloqueo.
 
 #### Frecuencias
 
