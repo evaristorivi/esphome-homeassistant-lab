@@ -8,7 +8,7 @@
 #
 # MODELO TÉRMICO DINÁMICO — la caja tiene dos regímenes según brillo backlight:
 #   - Estado FRÍO (pantalla atenuada/auto-dim):  T=-2.9°C, H=+9.2%
-#   - Estado CALIENTE (pantalla 100% equilibrio): T=-3.1°C, H=+10.0%
+#   - Estado CALIENTE (pantalla 100% equilibrio): T=-3.8°C, H=+10.0%
 # La variable global thermal_load (0..1) sigue el brillo con τ≈5min (inercia térmica
 # de la caja). Los filtros lambda interpolan el offset según thermal_load.
 #
@@ -188,8 +188,8 @@ sensor:
       name: "Temperatura Interior"
       id: aht20_temp
       filters:
-        # Offset dinámico: -2.9 (frío) → -3.1 (caliente, backlight 100% equilibrio)
-        - lambda: 'return x + (-2.9f - 0.2f * id(thermal_load));'
+        # Offset dinámico: -2.9 (frío) → -3.8 (caliente, backlight 100% equilibrio)
+        - lambda: 'return x + (-2.9f - 0.9f * id(thermal_load));'
       on_value:
         - lvgl.label.update:
             id: lbl_s_temp
@@ -213,6 +213,7 @@ sensor:
   - platform: scd4x
     id: scd4x_sensor
     address: 0x62
+    measurement_mode: single_shot
     update_interval: 30s
     ambient_pressure_compensation_source: bmp280_press
     co2:
