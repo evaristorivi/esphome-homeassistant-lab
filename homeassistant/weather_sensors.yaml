@@ -116,13 +116,6 @@
       state: >
         {{ fc_h['weather.casa'].forecast[3].precipitation | float(0) | round(1) }}
 
-    - name: home_forecast_3h_wind
-      unique_id: home_forecast_3h_wind
-      unit_of_measurement: "m/s"
-      state_class: measurement
-      state: >
-        {{ (fc_h['weather.casa'].forecast[3].wind_speed | float(0) / 3.6) | round(1) }}
-
     - name: home_forecast_3h_cond
       unique_id: home_forecast_3h_cond
       state: >
@@ -142,13 +135,6 @@
       state_class: measurement
       state: >
         {{ fc_h['weather.casa'].forecast[6].precipitation | float(0) | round(1) }}
-
-    - name: home_forecast_6h_wind
-      unique_id: home_forecast_6h_wind
-      unit_of_measurement: "m/s"
-      state_class: measurement
-      state: >
-        {{ (fc_h['weather.casa'].forecast[6].wind_speed | float(0) / 3.6) | round(1) }}
 
     - name: home_forecast_6h_cond
       unique_id: home_forecast_6h_cond
