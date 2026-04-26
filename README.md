@@ -282,6 +282,18 @@ Solución:
 2. Recompila y sube OTA.
 3. Verifica también la zona horaria de Home Assistant.
 
+### `Data not ready` repetido en SCD4x
+
+Causa típica: problema físico de conexión (falso contacto en cables/conector I2C, pin flojo, soldadura tocada al manipular la placa/caja). En algunos casos, tras varias reconexiones forzadas, el propio sensor puede quedar dañado.
+
+Solución recomendada (orden práctico):
+1. Revisar y rehacer cableado I2C (`SDA`, `SCL`, `3V3`, `GND`) y conectores.
+2. Comprobar alimentación estable y evitar tensión mecánica al cerrar caja.
+3. Probar el mismo montaje con otro SCD4x conocido bueno.
+4. Si al cambiar el sensor desaparece el problema, dar por confirmado sensor dañado.
+
+Caso real de este repo: durante pruebas de encaje en caja hubo manipulación mecánica, aparecieron `Data not ready` repetidos y se resolvió sustituyendo el sensor.
+
 ### SCD4x: compatibilidad de modos de medición
 
 Importante de compatibilidad: `measurement_mode: single_shot` es solo para SCD41 (y SCD43 según datasheet actual de Sensirion). En SCD40 puede aparentar funcionar, pero está fuera de especificación y no debe considerarse una solución válida.
