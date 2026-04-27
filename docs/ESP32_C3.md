@@ -414,6 +414,23 @@ La electrónica dentro de la caja (C3 + sensores) genera calor constante que fal
 
 A diferencia del CYD, el C3 no tiene pantalla que genere calor variable, por lo que un **offset estático** es suficiente — no se necesita la compensación dinámica del P13 del CYD.
 
+#### Otras optimizaciones para la caja
+
+- **`update_interval: 5s` en el display** — el OLED envía el frame buffer completo por I2C en cada refresco. Reducir de 1s a 5s disminuye el tráfico I2C sin pérdida real (los sensores solo actualizan cada 30s). Las acciones del encoder siguen siendo inmediatas porque llaman `component.update` explícitamente.
+- **Ventana de doble click ampliada a 600ms** — en la versión sin caja son 400ms; en la caja se amplía para dar más margen.
+- **Click simple diferido al interval** — la navegación a página 1 en click simple no ocurre en el momento del release sino 600ms después, evitando el flash visual si el primer click va seguido de un segundo.
+
+#### Limitación conocida: glitch en el doble click
+
+En una caja 3D pequeña con múltiples cables, el pin SW del encoder (GPIO10) queda inevitablemente cerca del bus I2C (SDA/SCL). Al pulsar el botón, la transición eléctrica brusca del SW se acopla capacitivamente a los cables I2C y genera errores de bus momentáneos (`I2C transaction timeout` en los logs).
+
+Consecuencias:
+- El OLED puede mostrar un glitch visual puntual al hacer doble click
+- A veces el doble click no se detecta a la primera y hay que repetirlo
+- Los logs muestran ráfagas de `E i2c.master: I2C transaction timeout detected` al pulsar
+
+Los sensores recuperan solos y siguen funcionando con normalidad — es solo un problema de interacción con el encoder. La solución definitiva es un condensador de **100nF entre el pin SW y GND** en el propio módulo KY-040, que suaviza el flanco y elimina el acoplamiento.
+
 ```sh
 esphome run esphome/c3_sensors_best_pages_vwce_dummy_encoder_3dbox.yaml --device COMx
 esphome run esphome/c3_sensors_best_pages_vwce_dummy_encoder_3dbox.yaml --device sensors-encoder.local
