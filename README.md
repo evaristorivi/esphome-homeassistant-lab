@@ -292,7 +292,15 @@ Solución recomendada (orden práctico):
 3. Probar el mismo montaje con otro SCD4x conocido bueno.
 4. Si al cambiar el sensor desaparece el problema, dar por confirmado sensor dañado.
 
-Caso real de este repo: durante pruebas de encaje en caja hubo manipulación mecánica, aparecieron `Data not ready` repetidos y se resolvió sustituyendo el sensor.
+Caso real de este repo: durante pruebas de encaje en caja, la manipulación mecánica sobre el conector I2C del SCD40 provocó `Data not ready` persistentes. El síntoma encajaba perfectamente con el [bug de ESPHome #2832](https://github.com/esphome/issues/issues/2832) (el state machine interno del sensor se queda bloqueado y `data_ready` nunca vuelve a ser `true` hasta reiniciar), así que se investigó ese camino y se probó `measurement_mode: single_shot` en el SCD40 como workaround.
+
+Comportamiento observado con `single_shot` en SCD40 (fuera de especificación):
+- Sin `single_shot`: 0 lecturas válidas, stuck permanente.
+- Con `single_shot`: ~1 lectura válida de cada 2 — inconsistente: a veces un día funcionaba, otro día no medía nada.
+- Aumentando el timeout interno de 5 000 ms a 55 000 ms: seguía siendo 1 de cada 2 como máximo.
+- Esta mejora parcial tiene sentido: el modo no está soportado en SCD40 según especificación Sensirion, así que el comportamiento es impredecible por diseño.
+
+La causa real era hardware: falso contacto o daño acumulado en el sensor durante la manipulación. Al sustituir el sensor, el sistema volvió a funcionar perfectamente con la configuración original (`periodic`, timeout por defecto). El bug #2832 fue una distracción — el síntoma era idéntico pero la causa era completamente diferente.
 
 ### SCD4x: compatibilidad de modos de medición
 

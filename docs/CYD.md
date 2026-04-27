@@ -87,6 +87,7 @@ Según la documentación oficial de ESPHome y la especificación de Sensirion:
 - `single_shot` y `single_shot_rht_only` son modos exclusivos del SCD41.
 - En SCD40 puede parecer que `single_shot` funciona en algunos firmwares, pero está fuera de especificación y no debe usarse.
 - Resumen detallado de modos: [README → SCD4x: compatibilidad de modos de medición](../README.md#scd4x-compatibilidad-de-modos-de-medición).
+- Diagnóstico de `Data not ready` persistente y por qué `single_shot` no es la solución en SCD40: [README → Data not ready repetido en SCD4x](../README.md#data-not-ready-repetido-en-scd4x).
 
 ```yaml
 - platform: scd4x
