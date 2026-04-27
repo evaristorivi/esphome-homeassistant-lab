@@ -249,6 +249,22 @@ Envía mensajes de diagnóstico por el puerto serie y desde la UI web de ESPHome
 
 ## Errores típicos y solución
 
+### El ESP32 no conecta al WiFi o se desconecta frecuentemente
+
+Causa habitual en montajes dentro de caja 3D: los cables cerca de la antena PCB del módulo actúan como antenas parásitas e interfieren con la señal, aunque el RSSI sea bueno (−40 a −50 dBm).
+
+Solución: reducir la potencia de transmisión en el bloque `wifi:`:
+
+```yaml
+wifi:
+  output_power: 10dB
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+```
+
+Es contraintuitivo (menos potencia = mejor conexión), pero reduce las reflexiones dentro de la caja. Probado y confirmado en el ESP32-C3 Super Mini en caja 3D impresa. El rango válido es 8.5–20.5 dB; 10 dB es el valor que resultó estable en este proyecto.
+
 ### `Entity not found: sensor.home_*` en CYD Weather
 
 Causa habitual: `location_name` no coincide con el prefijo real de tus sensores en Home Assistant.
