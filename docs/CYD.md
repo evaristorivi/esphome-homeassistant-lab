@@ -383,15 +383,15 @@ esphome run esphome/cyd_weather.yaml --device cyd-weather.local
 
 ### ⭐ Proyecto 13: CYD estación meteorológica con compensación térmica para caja 3D — configuración final recomendada (`cyd_weather_offset_3dbox.yaml`)
 
+<p align="center">
+  <img src="../images/cyd-print3d.jpg" alt="CYD montado en carcasa 3D impresa" style="width:50%;">
+</p>
+
 Variante del Proyecto 12 pensada para montar el CYD dentro de una **caja 3D impresa cerrada**. La caja es estéticamente superior pero introduce un problema físico: el display ST7789 y el propio ESP32 generan calor que queda atrapado, calentando los sensores I²C y falseando sus lecturas de temperatura y humedad.
 
 Este proyecto añade un **modelo térmico dinámico** que compensa ese error en tiempo real según el estado del backlight.
 
 > 🖨️ **Modelo 3D de la carcasa:** [Thingiverse — thing 7340015](https://www.thingiverse.com/thing:7340015) (adaptación propia de un diseño existente, listo para imprimir).
-
-<p align="center">
-  <img src="../images/cyd-print3d.jpg" alt="CYD montado en carcasa 3D impresa" style="width:50%;">
-</p>
 
 #### El problema: la caja 3D es un pequeño horno
 
