@@ -145,12 +145,12 @@ sensor:
       name: "Temperatura"
       id: aht20_temp
       filters:
-        - offset: -1.1
+        - offset: -3.9
     humidity:
       name: "Humedad"
       id: aht20_hum
       filters:
-        - offset: 5.2
+        - offset: 8.6
 
   # VWCE — precio recibido desde Home Assistant (sensor REST)
   # Requiere que HA tenga configurado vwce_sensor.yaml
@@ -164,6 +164,29 @@ sensor:
     id: wifi_rssi
     update_interval: 30s
     internal: true
+
+  # Temperatura interna del chip ESP32-C3
+  # Mide el die del chip, no el ambiente. Normal en caja: 40-65°C
+  - platform: internal_temperature
+    name: "ESP32 Temperatura Interna"
+    id: esp32_temp
+    update_interval: 30s
+    on_value_range:
+      - above: 75.0
+        below: 85.0
+        then:
+          - logger.log:
+              level: WARN
+              format: "Temperatura ESP32 elevada: %.1f°C"
+              args: ['x']
+      - above: 85.0
+        then:
+          - logger.log:
+              level: ERROR
+              format: "Temperatura ESP32 critica: %.1f°C — reiniciando"
+              args: ['x']
+          - delay: 2s
+          - button.press: restart_button
 
   # ── Encoder rotatorio KY-040 ─────────────────────────────────────────────
   # Girar → cambia de página.  No se usa el valor numérico; solo los triggers.
