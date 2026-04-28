@@ -504,10 +504,6 @@ En los logs de ESPHome (`esphome logs cyd_weather_offset_3dbox.yaml`) puedes com
 [D][sensor:124]: 'BMP280 Temperatura' >> 24.5 °C       ← raw del BMP280 (sin offset)
 ```
 
-<p align="center">
-  <img src="../images/logs.png" alt="Ejemplo de logs ESPHome" style="width:80%;">
-</p>
-
 La diferencia entre ambos confirma que la caja sí está más caliente que el ambiente y que el offset está actuando.
 
 Para inspeccionar `thermal_load` puedes añadir temporalmente un sensor template:

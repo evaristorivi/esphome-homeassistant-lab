@@ -213,6 +213,16 @@ esphome run esphome/cyd_weather_dummy.yaml --device cyd-weather-dummy.local
 
 > **Primera flash:** siempre por USB (botón BOOT pulsado al conectar). Las siguientes actualizaciones van por WiFi (OTA) automáticamente.
 
+Para ver los logs en tiempo real (muy útil para depurar):
+
+```sh
+esphome logs esphome/cyd_weather_dummy.yaml --device cyd-weather-dummy.local
+```
+
+<p align="center">
+  <img src="images/logs.png" alt="Ejemplo de logs ESPHome" style="width:80%;">
+</p>
+
 ### 6. Comprueba que todo está bien
 
 1. La pantalla muestra hora, icono wifi y datos.
