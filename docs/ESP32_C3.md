@@ -397,6 +397,10 @@ esphome run esphome/c3_sensors_best_pages_vwce_dummy_encoder.yaml --device senso
 
 ### ⭐ Proyecto 7 + caja 3D: configuración final recomendada (`c3_sensors_best_pages_vwce_dummy_encoder_3dbox.yaml`)
 
+| | |
+|---|---|
+| ![C3 Super Mini en caja 3D](../images/c3supermini.jpeg) | ![C3 Super Mini tumbado](../images/c3superminitumbado.jpeg) |
+
 Variante del Proyecto 7 pensada para montar el C3 dentro de una **caja 3D impresa**.
 
 > 🖨️ **Modelo 3D de la carcasa:** [Thingiverse — thing 7343751](https://www.thingiverse.com/thing:7343751) (remix con orificios adaptados al OLED, encoder y ESP32-C3 Super Mini).
@@ -439,9 +443,3 @@ Los sensores recuperan solos y siguen funcionando con normalidad — es solo un 
 esphome run esphome/c3_sensors_best_pages_vwce_dummy_encoder_3dbox.yaml --device COMx
 esphome run esphome/c3_sensors_best_pages_vwce_dummy_encoder_3dbox.yaml --device sensors-encoder.local
 ```
-
-#### Resultado final
-
-| | |
-|---|---|
-| ![C3 Super Mini en caja 3D](../images/c3supermini.jpeg) | ![C3 Super Mini tumbado](../images/c3superminitumbado.jpeg) |
